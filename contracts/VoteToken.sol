@@ -37,6 +37,9 @@ contract VoteToken is ERC20, ERC20Burnable{
 
 
     modifier validateBallot(address _wallet, uint16 _idEleccion, string memory _fecha) {
+        require (
+            elecciones[_idEleccion].idEleccion != 0,     
+            'La eleccion para sufragar no costa en el registro');
 
         uint256 tamanio = eleccionesRegistradas.length;
 
@@ -63,17 +66,22 @@ contract VoteToken is ERC20, ERC20Burnable{
     function sufragar (uint16 _idEleccion, address _lista) 
         public validateBallot(msg.sender, _idEleccion, elecciones[_idEleccion].fecha)
     {
-        elecciones[_idEleccion].votosReceived[msg.sender] = true;
-        emit VoterData(msg.sender, true);
+        Eleccion storage eleccion = elecciones[_idEleccion];
+        eleccion.votosReceived[msg.sender] = true;
+        emit VoterData(msg.sender, elecciones[_idEleccion].votosReceived[msg.sender]);
         transfer(_lista, 1);
+    }
+
+    function haveVoteReceived (uint16 _idEleccion, address _user) 
+    public view returns (bool){
+        return elecciones[_idEleccion].votosReceived[_user];
     }
 
     function agregarEleccion (uint16 _idEleccion, string memory _fecha) 
     public duplicateEleccion(_idEleccion){
-        
         elecciones[_idEleccion].idEleccion = _idEleccion;
         elecciones[_idEleccion].fecha = _fecha;
-        elecciones[_idEleccion].finished = false;
+        elecciones[_idEleccion].finished = false;        
         eleccionesRegistradas.push(_idEleccion);
         emit EleccionData(_idEleccion, _fecha, false);
     }
@@ -83,5 +91,12 @@ contract VoteToken is ERC20, ERC20Burnable{
             return false;
         }
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+
+    function finishEleccion (uint16 _idEleccion) public {
+        Eleccion storage eleccion = elecciones[_idEleccion];
+        eleccion.finished = true;
+
+        emit EleccionData(eleccion.idEleccion, eleccion.fecha, eleccion.finished);
     }
 }
