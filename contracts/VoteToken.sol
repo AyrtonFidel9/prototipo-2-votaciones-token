@@ -59,7 +59,7 @@ contract VoteToken is ERC20, ERC20Burnable{
         Eleccion storage eleccion = elecciones[_idEleccion];
         eleccion.votosReceived[msg.sender] = true;
         emit VoterData(msg.sender, elecciones[_idEleccion].votosReceived[msg.sender]);
-        transfer(_lista, 1);
+        transfer(_lista, 1 * 10**18);
     }
 
     function haveVoteReceived (uint16 _idEleccion, address _user) 
